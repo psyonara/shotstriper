@@ -26,7 +26,7 @@ def get_palettes(category_name=None):
             continue
 
         for name, colors in palettes.items():
-            yield name, colors
+            yield f"{category}.{name}", colors
 
 
 def get_palette(palette_name: str):
@@ -44,11 +44,6 @@ def get_palette(palette_name: str):
     return category_set[name]
 
 
-def get_palette_string(name, colors):
-    color_string = "".join([f"[on {color}]    [/]" for color in colors])
-    return f"{color_string} {name}"
-
-
 @app.command()
 def browse_palettes(category=None):
     row = 0
@@ -57,11 +52,11 @@ def browse_palettes(category=None):
         for n in range(4):
             colors = [c[n] for name, c in palettes]
             for color in colors:
-                print(f"[on {color}]            [/]", end="")
-                print("            ", end="")
+                print(f"[on {color}]               [/]", end="")
+                print("               ", end="")
             print()
         for name, _ in palettes:
-            name_padding = " " * (24-len(name))
+            name_padding = " " * (30-len(name))
             print(f"{name}{name_padding}", end="")
         print()
         print()
@@ -90,7 +85,6 @@ def add_background(
     else:
         raise ValueError("Please specify either 'path' or 'from_clipboard.")
 
-    # src_img = Image.open(f)
     src_img = src_img.convert("RGBA")
     width = src_img.width
     height = src_img.height
