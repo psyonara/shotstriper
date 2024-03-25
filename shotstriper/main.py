@@ -1,7 +1,3 @@
-import glob
-import json
-import os
-
 import aggdraw
 import random
 from pathlib import Path
@@ -10,6 +6,8 @@ from rich import print
 import typer
 from PIL import Image, ImageDraw, ImageFilter, ImageGrab
 from typing_extensions import Annotated
+
+from shotstriper.palettes import PALETTES
 
 app = typer.Typer()
 
@@ -20,14 +18,12 @@ def chunk(lst: list, size: int):
 
 
 def get_palettes(category_name=None):
-    for file in glob.iglob("./palettes-data/*.json"):
-        filename = f"./{file}"
-        category, _ = os.path.splitext(os.path.basename(filename))
-        if category_name and category != category_name:
-            continue
+    if category_name and category_name.lower() not in PALETTES:
+        raise ValueError("Category not found.")
 
-        with open(file, "r") as f:
-            palettes = json.loads(f.read())
+    for category, palettes in PALETTES.items():
+        if category_name and category.lower() != category_name.lower():
+            continue
 
         for name, colors in palettes.items():
             yield name, colors
@@ -35,13 +31,17 @@ def get_palettes(category_name=None):
 
 def get_palette(palette_name: str):
     category, name = palette_name.split(".")
-    if isinstance(category, str) and isinstance(name, str):
-        with open(f"./palettes-data/{category}.json", "r") as f:
-            palettes = json.loads(f.read())
+    if not (isinstance(category, str) and isinstance(name, str)):
+        raise ValueError("Please specify a category and name, e.g. 'neon.excited-surround'.")
 
-        return palettes[name]
+    if category.lower() not in PALETTES:
+        raise ValueError("Category not found.")
 
-    raise ValueError("Please specify a category and name, e.g. 'neon.excited-surround'.")
+    category_set = PALETTES[category]
+    if name.lower() not in category_set:
+        raise ValueError("Palette not found.")
+
+    return category_set[name]
 
 
 def get_palette_string(name, colors):
