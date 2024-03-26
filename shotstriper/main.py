@@ -19,7 +19,7 @@ def chunk(lst: list, size: int):
 
 def get_palettes(category_name=None):
     if category_name and category_name.lower() not in PALETTES:
-        raise ValueError("Category not found.")
+        raise typer.BadParameter("Category not found.")
 
     for category, palettes in PALETTES.items():
         if category_name and category.lower() != category_name.lower():
@@ -32,16 +32,22 @@ def get_palettes(category_name=None):
 def get_palette(palette_name: str):
     category, name = palette_name.split(".")
     if not (isinstance(category, str) and isinstance(name, str)):
-        raise ValueError("Please specify a category and name, e.g. 'neon.excited-surround'.")
+        raise typer.BadParameter("Please specify a category and name, e.g. 'neon.excited-surround'.")
 
     if category.lower() not in PALETTES:
-        raise ValueError("Category not found.")
+        raise typer.BadParameter("Category not found.")
 
     category_set = PALETTES[category]
     if name.lower() not in category_set:
-        raise ValueError("Palette not found.")
+        raise typer.BadParameter("Palette not found.")
 
     return category_set[name]
+
+
+@app.command()
+def palette_categories():
+    for category in PALETTES.keys():
+        print(category)
 
 
 @app.command()
@@ -71,19 +77,20 @@ def add_background(
     path: Annotated[Path, typer.Argument()] = None,
     from_clipboard: Annotated[bool, typer.Option()] = False,
     palette_name: Annotated[str, typer.Option(prompt="Which color palette would you like to use")] = "",
+    output_file: Annotated[str, typer.Option(prompt="The name of the output file")] = "out.jpg",
 ):
     if path:
         if path.is_file():
             src_img = Image.open(path)
         else:
-            raise ValueError("No valid file path was specified.")
+            raise typer.BadParameter("No valid file path was specified.")
     elif from_clipboard:
         try:
             src_img = ImageGrab.grabclipboard()
         except Exception as e:
-            raise ValueError(f"Could not grab image from clipboard: {e}")
+            raise typer.BadParameter(f"Could not grab image from clipboard: {e}")
     else:
-        raise ValueError("Please specify either 'path' or 'from_clipboard.")
+        raise typer.BadParameter("Please specify either 'path' or 'from_clipboard.")
 
     src_img = src_img.convert("RGBA")
     width = src_img.width
@@ -139,4 +146,7 @@ def add_background(
     new_img.paste(src_img, (padding, padding), src_img)
 
     new_img = new_img.convert("RGB")
-    new_img.save("new.jpg", quality=95)
+    out_file = output_file
+    if not out_file.endswith(".jpg"):
+        out_file += ".jpg"
+    new_img.save(out_file, quality=95)
