@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "shotstriper"
-version = "0.1.2"
+version = "0.1.3"
 description = "Add beautiful, striped backgrounds to your screenshots"
 authors = ["Helmut Irle <me@helmut.dev>"]
 readme = "README.md"
